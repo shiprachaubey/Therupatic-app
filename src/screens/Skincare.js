@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+
 import {
   View,
   Text,
@@ -6,15 +7,69 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
+  Dimensions, Alert
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
-
+import axios from 'axios'; 
 export default function SkinCareScreen() {
   const navigation = useNavigation();
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [loading, setLoading] = useState(false);
+  
+  useEffect(() => {
+    const fetchPdf = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.post(
+          'https://admin.gmtherapeutics.com/api/categories/init',
+          {
+            page_no: '1',
+            max_page: '1',
+            max_per_page: '100',
+          },
+          {
+            headers: {
+              apiToken: '$2y$10$pWdBjGrU/owXXhVOO8N6rOCo.TJESwURN39hWlpDarPLT9QDPd.ZG',
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
+  
+        const categories = response.data?.categories || [];
+  
+        // Find the "Skin Care" category (case-insensitive)
+        const skinCareCategory = categories.find(
+          (cat) => cat.category_name?.toLowerCase().includes('skin care')
+        );
+  
+        if (!skinCareCategory) {
+          console.warn(' Skin Care category not found');
+          return;
+        }
+  
+        const pdfPath = skinCareCategory.pdffiles?.[0]?.pdf_file;
+  
+        if (pdfPath) {
+          const fullUrl = `https://admin.gmtherapeutics.com/${pdfPath.replace(/^\/+/, '')}`;
+          console.log('✅ PDF URL:', fullUrl);
+          setPdfUrl(fullUrl);
+        } else {
+          console.warn('⚠️ No PDF found in Skin Care category');
+        }
+      } catch (error) {
+        console.error(' Error fetching PDF:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchPdf();
+  }, []);
+  
+  
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -27,13 +82,18 @@ export default function SkinCareScreen() {
 
       {/* Folder Card */}
       <TouchableOpacity
-        style={[styles.card, { backgroundColor: '#C4A340' }]}
-        onPress={() => {
-            console.log("Navigating to PdfViewer");
-            navigation.navigate('PdfViewer');
-          }}
-          
-      >
+  style={[styles.card, { backgroundColor: '#C4A340' }]}
+  onPress={() => {
+    if (pdfUrl) {
+      navigation.navigate('PdfViewer', { url: pdfUrl });
+    } else {
+      Alert.alert('No PDF Found', 'The Skin Care folder is currently empty.');
+    }
+  }}
+  
+>
+
+
         <Image
           source={require('../assets/images/skin.jpg')}
           style={styles.cardImage}
@@ -101,3 +161,6 @@ const styles = StyleSheet.create({
     color: '#000',
   },
 });
+
+
+

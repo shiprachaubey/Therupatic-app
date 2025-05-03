@@ -1,6 +1,13 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import {
+  responsiveScreenHeight,
+  responsiveScreenWidth,
+  responsiveScreenFontSize
+} from "react-native-responsive-dimensions";
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 
 export default function SplashScreen() {
     const navigation = useNavigation();

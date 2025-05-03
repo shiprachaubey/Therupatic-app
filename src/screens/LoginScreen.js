@@ -1,17 +1,61 @@
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet ,Alert} from 'react-native';
 import InputField from '../components/InputField';
 import CustomButton from '../components/CustomButton';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Missing Fields', 'Please enter both email and password');
+      return;
+    }
+  
+    setLoading(true);
+  
+    try {
+      const response = await fetch('https://admin.gmtherapeutics.com/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      const data = await response.json();
+      console.log('Login response:', data); // Helpful for debugging
+  
+      if (data.success) {
+        const user = data.user;
+  
+        // Optional: Store user or token here using AsyncStorage or Context
+  
+        Alert.alert('Login Successful', `Welcome ${user.user_name}!`, [
+          { text: 'OK', onPress: () => navigation.navigate('Home') },
+        ]);
+      } else {
+        Alert.alert('Login Failed', data.message || 'Invalid Email or Password');
+      }
+    } catch (error) {
+      console.error('Login Error:', error);
+      Alert.alert('Error', 'Something went wrong. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  
+
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Login</Text>
       <Text style={styles.label}>Welcome !!</Text>
+
 
       <InputField
   label="EMAIL"
@@ -36,17 +80,13 @@ export default function LoginScreen({ navigation }) {
         <Text style={styles.forgotText}>Forgot Password?</Text>
       </TouchableOpacity>
 
-      <CustomButton
-        title="Login"
-        onPress={() => navigation.navigate('Home')}
-      />
+      <CustomButton title="Login" onPress={handleLogin} />
 
       <TouchableOpacity style={styles.register}>
         <Text style={styles.registerText}>
           Don’t have an account yet?{' '}
           <Text
             style={{ color: '#2D3B59' }}
-            onPress={() => navigation.navigate('Register')}
           >
             Register Now
           </Text>
