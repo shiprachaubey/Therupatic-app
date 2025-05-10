@@ -88,7 +88,6 @@
 //     width: Dimensions.get('window').width,
 //   },
 // });
-
 import React from 'react';
 import { View, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
 import Pdf from 'react-native-pdf';

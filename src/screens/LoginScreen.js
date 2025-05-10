@@ -140,16 +140,36 @@
 //     },
 //   });
 
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View, Text, TouchableOpacity, StyleSheet, Alert
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import InputField from '../components/InputField';
 import CustomButton from '../components/CustomButton';
+import * as Keychain from 'react-native-keychain';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // 🔁 Autofill from saved credentials
+  useEffect(() => {
+    const loadSavedCredentials = async () => {
+      try {
+        const credentials = await Keychain.getGenericPassword();
+        if (credentials) {
+          setEmail(credentials.username);
+          setPassword(credentials.password);
+        }
+      } catch (err) {
+        console.error('Failed to load credentials', err);
+      }
+    };
+
+    loadSavedCredentials();
+  }, []);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -169,7 +189,7 @@ export default function LoginScreen({ navigation }) {
       });
 
       const data = await response.json();
-      console.log('Login response:', data); // Debug
+      console.log('Login response:', data);
 
       if (data.success) {
         const user = data.user;
@@ -177,6 +197,9 @@ export default function LoginScreen({ navigation }) {
         // Save login state
         await AsyncStorage.setItem('isLoggedIn', 'true');
         await AsyncStorage.setItem('user', JSON.stringify(user));
+
+        // ✅ Save credentials securely
+        await Keychain.setGenericPassword(email, password);
 
         Alert.alert('Login Successful', `Welcome ${user.user_name}!`, [
           { text: 'OK', onPress: () => navigation.replace('Home') },
@@ -215,21 +238,11 @@ export default function LoginScreen({ navigation }) {
         variant="filled"
       />
 
-      <TouchableOpacity style={styles.forgot}>
-        <Text style={styles.forgotText}>Forgot Password?</Text>
-      </TouchableOpacity>
-
       <CustomButton title="Login" onPress={handleLogin} loading={loading} />
-
-      <TouchableOpacity style={styles.register}>
-        <Text style={styles.registerText}>
-          Don’t have an account yet?{' '}
-          <Text style={{ color: '#2D3B59' }}>Register Now</Text>
-        </Text>
-      </TouchableOpacity>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
