@@ -415,12 +415,13 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <StatusBar backgroundColor={'#fff'} barStyle={'dark-content'} />
-      <ScrollView
-        contentContainerStyle={styles.container}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      >
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#F5F5F5' }}>
+    <StatusBar backgroundColor={'#fff'} barStyle={'dark-content'} />
+    <ScrollView
+      style={{ flex: 1 }}
+      contentContainerStyle={styles.container}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    >
         <View style={styles.headerRow}>
           <Text style={styles.header}>HOME</Text>
           <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
